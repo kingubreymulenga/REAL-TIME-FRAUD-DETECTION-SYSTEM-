@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GUARDIAN // Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #030308;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+        .mono { font-family: 'Share Tech Mono', monospace; }
+        #matrix {
+            position: fixed; inset: 0; z-index: 0; opacity: 0.15; pointer-events: none;
+        }
+        .login-card {
+            background: rgba(8, 12, 20, 0.92);
+            border: 1px solid rgba(0, 255, 159, 0.22);
+            box-shadow: 0 0 50px rgba(0, 255, 159, 0.08);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            z-index: 10;
+            position: relative;
+        }
+        .neon-input {
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(0,255,159,0.25);
+            color: #00ff9f;
+        }
+        .neon-input:focus {
+            outline: none;
+            border-color: #00ff9f;
+            box-shadow: 0 0 0 3px rgba(0,255,159,0.12);
+        }
+        .btn-login {
+            background: linear-gradient(90deg, rgba(0,255,159,0.15), rgba(0,240,255,0.15));
+            border: 1px solid rgba(0,255,159,0.4);
+            color: #00ff9f;
+            transition: 0.25s;
+        }
+        .btn-login:hover {
+            background: linear-gradient(90deg, rgba(0,255,159,0.25), rgba(0,240,255,0.25));
+            box-shadow: 0 0 25px rgba(0,255,159,0.25);
+        }
+        .error-box {
+            background: rgba(255,42,109,0.1);
+            border: 1px solid rgba(255,42,109,0.35);
+            color: #ff2a6d;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <div class="login-card mx-4">
+        <div class="p-8 text-center border-b border-green-900/30">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+                <i class="fas fa-shield-alt text-3xl text-green-400"></i>
+            </div>
+            <h1 class="text-2xl font-bold mono tracking-widest text-green-400">THE GUARDIAN</h1>
+            <p class="text-xs text-gray-500 mono mt-2 tracking-widest">SECURE ACCESS PORTAL</p>
+        </div>
+
+        <div class="p-8">
+            {% if error %}
+            <div class="error-box rounded-lg px-4 py-3 mb-5 text-sm mono text-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/login" class="space-y-5">
+                <div>
+                    <label class="block text-xs text-gray-400 mono mb-2">USERNAME / PHONE NUMBER</label>
+                    <input type="text" name="username" required autofocus
+                        class="neon-input w-full px-4 py-3.5 rounded-lg mono text-sm"
+                        placeholder="admin or 0977123456">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 mono mb-2">PASSWORD</label>
+                    <input type="password" name="password" required
+                        class="neon-input w-full px-4 py-3.5 rounded-lg mono text-sm"
+                        placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn-login w-full py-3.5 rounded-lg font-medium mono text-sm">
+                    <i class="fas fa-terminal mr-2"></i> AUTHENTICATE
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-sm text-gray-500">
+                New user? <a href="/user/register" class="text-green-400 hover:underline">Create Account</a>
+            </div>
+
+            <p class="text-center text-xs text-gray-600 mt-8 mono">Secured by Obby Mulenga</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+        const fontSize = 14;
+        let drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+
+        function draw() {
+            ctx.fillStyle = 'rgba(3,3,8,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff9f';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 45);
+    </script>
+</body>
+</html>

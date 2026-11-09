@@ -1,0 +1,77 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GUARDIAN // Create Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
+        .card { background: #111827; border: 1px solid #1e293b; }
+        .input-field { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; }
+        .input-field:focus { outline: none; border-color: #22d3ee; }
+        .btn-primary { background: #0891b2; transition: 0.2s; }
+        .btn-primary:hover { background: #0e7490; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="card w-full max-w-md rounded-2xl p-8">
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+                <i class="fas fa-user-plus text-2xl text-cyan-400"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-cyan-400">Create Account</h1>
+            <p class="text-slate-400 text-sm mt-1">Join The Guardian Protection System</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm rounded-lg p-3 mb-5 text-center">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm rounded-lg p-3 mb-5 text-center">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/user/register" class="space-y-4">
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Full Name</label>
+                <input type="text" name="full_name" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="John Banda">
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Phone Number (Username)</label>
+                <input type="text" name="username" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="0977123456">
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Email (Optional)</label>
+                <input type="email" name="email" class="input-field w-full px-4 py-3 rounded-lg" placeholder="john@example.com">
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Password</label>
+                <input type="password" name="password" required minlength="6" class="input-field w-full px-4 py-3 rounded-lg" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn-primary w-full py-3 rounded-lg font-medium text-white mt-2">
+                Create Account
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-slate-500 mt-6">
+            Already have an account?
+            <a href="/login" class="text-cyan-400 hover:underline">Login here</a>
+        </p>
+
+        <p class="text-center text-xs text-slate-600 mt-8">Secured by Obby Mulenga</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1054 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>THE GUARDIAN | Customer Portal</title>
+
+<script src="https://cdn.tailwindcss.com">
+
+
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  color-scheme:dark;
+  --bg:#0b1220;
+  --panel:#111c2e;
+  --line:#26364b;
+  --muted:#91a0b5;
+  --green:#35e6a1;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;padding-bottom:85px;
+  background:radial-gradient(ellipse at 15% -10%,rgba(16,185,129,.13),transparent 36%),var(--bg);
+  color:#e5edf7;font-family:Inter,system-ui,sans-serif
+}
+#wallpaper{position:fixed;inset:0;width:100%;height:100%;opacity:.075;pointer-events:none;z-index:0}
+.app-shell{position:relative;z-index:1;width:min(1180px,100%);margin:auto;padding:0 14px 30px}
+.panel{background:linear-gradient(145deg,rgba(19,31,49,.97),rgba(14,24,39,.97));border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px rgba(0,0,0,.12)}
+.eyebrow{color:var(--green);font-size:10px;font-weight:800;letter-spacing:.19em;text-transform:uppercase}
+.muted{color:var(--muted)}
+.section{display:none;animation:fade .18s ease}
+.section.active{display:block}
+@keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.desktop-nav{display:none}
+.nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:12px;color:#91a0b5;font-size:13px;font-weight:600;text-align:left}
+.nav-btn:hover,.nav-btn.active{color:#eafff6;background:rgba(16,185,129,.12)}
+.nav-btn.active{box-shadow:inset 3px 0 var(--green)}
+.mobile-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:flex;justify-content:space-around;gap:3px;padding:10px 5px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(10,18,31,.97);backdrop-filter:blur(18px)}
+.mobile-nav button{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:48px;color:#8392a8;font-size:10px;font-weight:600}
+.mobile-nav button.active{color:var(--green)}
+.field{width:100%;border:1px solid #34445b;border-radius:12px;background:#091321;color:#f2f7fc;padding:13px 14px;outline:none}
+.field:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(53,230,161,.1)}
+.primary{background:var(--green);color:#062117;border-radius:12px;padding:12px 16px;font-weight:800;font-size:13px}
+.primary:hover{filter:brightness(1.06)}
+.secondary{background:#1b2a40;color:#dce8f5;border:1px solid #34445b;border-radius:12px;padding:11px 14px;font-weight:600;font-size:13px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #35465c;background:#17263a;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:700}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--green);box-shadow:0 0 10px rgba(53,230,161,.65)}
+.metric{background:rgba(7,16,29,.48);border:1px solid #26364b;border-radius:14px;padding:14px}
+.transaction-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(49,66,88,.65)}
+.transaction-row:last-child{border-bottom:0}
+.status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em}
+.status-allow{color:#78f0bd;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22)}
+.status-review{color:#fbd477;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22)}
+.status-block{color:#ff9999;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.22)}
+.status-other{color:#c2d0e2;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.2)}
+.notice{border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.55}
+.notice-warn{color:#f8d78a;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.22)}
+.notice-error{color:#ffaaaa;background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.22)}
+.notice-success{color:#8af0c1;background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.22)}
+.chat-bubble{max-width:88%;padding:12px 14px;border-radius:15px;margin:10px 0;font-size:13px;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}
+.chat-user{margin-left:auto;background:rgba(16,185,129,.13);border:1px solid rgba(16,185,129,.25)}
+.chat-ai{background:#1a2a40;border:1px solid #30435c}
+.hidden{display:none!important}
+@media(min-width:900px){
+ body{padding-bottom:0}
+ .app-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;padding:24px}
+ .desktop-nav{display:block;position:sticky;top:24px;height:calc(100vh - 48px);align-self:start}
+ .main-column{min-width:0}
+ .mobile-nav{display:none}
+}
+</style>
+</head>
+
+<body>
+<canvas id="wallpaper" aria-hidden="true"></canvas>
+
+<div class="app-shell">
+
+<aside class="desktop-nav panel p-4">
+  <div class="flex items-center gap-3 px-2 pt-2 pb-7">
+    <div class="w-10 h-10 rounded-xl bg-emerald-400/15 border border-emerald-300/20 flex items-center justify-center">
+      <i class="fa-solid fa-shield-halved text-emerald-300 text-lg"></i>
+    </div>
+    <div>
+      <div class="font-extrabold tracking-wide text-sm">THE GUARDIAN</div>
+      <div class="eyebrow mt-1">Customer portal</div>
+    </div>
+  </div>
+
+  <div class="eyebrow px-3 mb-3">Workspace</div>
+  <nav class="space-y-1">
+    <button class="nav-btn active" data-section="home"><i class="fa-solid fa-grid-2 w-4"></i>Overview</button>
+    <button class="nav-btn" data-section="wallet"><i class="fa-solid fa-wallet w-4"></i>My wallet</button>
+    <button class="nav-btn" data-section="transactions"><i class="fa-solid fa-arrow-right-arrow-left w-4"></i>Transactions</button>
+    <button class="nav-btn" data-section="savings"><i class="fa-solid fa-piggy-bank w-4"></i>Savings Goals</button>
+    <button class="nav-btn" data-section="qrpay"><i class="fa-solid fa-qrcode w-4"></i>QR Payments</button>
+    <button class="nav-btn" data-section="vcard"><i class="fa-solid fa-credit-card w-4"></i>Virtual Card</button>
+    <button class="nav-btn" data-section="analytics"><i class="fa-solid fa-chart-pie w-4"></i>Spending Analytics</button>
+    <button class="nav-btn" data-section="security"><i class="fa-solid fa-shield-halved w-4"></i>Security Centre</button>
+    <button class="nav-btn" data-section="ai"><i class="fa-solid fa-wand-magic-sparkles w-4"></i>AI NYASHA</button>
+    <button class="nav-btn" data-section="settings"><i class="fa-solid fa-user-gear w-4"></i>Account settings</button>
+  </nav>
+
+  <div class="mt-8 p-3 rounded-xl bg-emerald-400/5 border border-emerald-300/15">
+    <div class="flex items-center gap-2 text-emerald-300 text-xs font-bold">
+      <span class="dot"></span> SECURITY MONITORING
+    </div>
+    <p class="muted text-xs leading-relaxed mt-2">Transactions are screened for suspicious activity before eligible wallet movements are completed.</p>
+  </div>
+
+  <a href="/user/logout" class="flex items-center gap-3 px-3 py-3 mt-5 text-sm text-rose-300 hover:bg-rose-400/10 rounded-xl">
+    <i class="fa-solid fa-arrow-right-from-bracket w-4"></i>Sign out
+  </a>
+</aside>
+
+<main class="main-column min-w-0">
+
+<header class="flex justify-between items-center gap-4 py-5 md:py-2 mb-4">
+  <div class="min-w-0">
+    <div class="eyebrow">THE GUARDIAN / SECURE WALLET</div>
+    <h1 class="text-xl md:text-2xl font-extrabold mt-1 truncate">
+      Good to see you, <span id="userFullName">Customer</span>
+    </h1>
+    <p class="muted text-xs mt-1">Your money. Your activity. Your protection.</p>
+  </div>
+  <div class="text-right shrink-0">
+    <div class="pill"><span class="dot"></span> PROTECTED</div>
+    <p id="connectionStatus" class="muted text-[10px] mt-2">Connecting…</p>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section id="section-home" class="section active">
+
+  <div class="panel p-5 md:p-7 mb-4 overflow-hidden relative">
+    <div class="absolute -right-12 -top-16 w-56 h-56 rounded-full bg-emerald-400/5 blur-2xl"></div>
+    <div class="relative flex flex-wrap justify-between items-start gap-4">
+      <div>
+        <p class="text-sm muted">Available wallet balance</p>
+        <div id="balanceDisplay" class="text-3xl md:text-4xl font-extrabold tracking-tight mt-2">ZMW 0.00</div>
+        <p class="muted text-xs mt-2"><i class="fa-solid fa-lock text-emerald-300 mr-1"></i>Guardian Wallet · Zambian Kwacha</p>
+      </div>
+      <div class="w-12 h-12 rounded-2xl bg-emerald-400/10 border border-emerald-300/20 flex items-center justify-center">
+        <i class="fa-solid fa-wallet text-emerald-300 text-xl"></i>
+      </div>
+    </div>
+    <div class="relative flex flex-wrap gap-2 mt-6">
+      <button class="primary" onclick="navigate('wallet');showWalletTab('send')"><i class="fa-solid fa-paper-plane mr-2"></i>Send money</button>
+      <button class="secondary" onclick="navigate('wallet');showWalletTab('topup')"><i class="fa-solid fa-circle-plus mr-2"></i>Top up wallet</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-2 md:gap-3 mb-4" id="statsContainer">
+    <div class="metric"><p class="muted text-[10px]">Transactions</p><p class="text-xl font-bold mt-2">—</p></div>
+    <div class="metric"><p class="muted text-[10px]">Allowed</p><p class="text-xl font-bold text-emerald-300 mt-2">—</p></div>
+    <div class="metric"><p class="muted text-[10px]">Held / blocked</p><p class="text-xl font-bold text-amber-300 mt-2">—</p></div>
+  </div>
+
+  <div class="grid md:grid-cols-[1.3fr_.7fr] gap-4">
+    <div class="panel p-4 md:p-5">
+      <div class="flex justify-between items-center mb-3">
+        <div>
+          <div class="font-bold text-sm">Recent transactions</div>
+          <p class="muted text-xs mt-1">Your latest wallet activity</p>
+        </div>
+        <button onclick="navigate('transactions')" class="text-emerald-300 text-xs font-semibold">View all →</button>
+      </div>
+      <div id="recentTransactions"><p class="muted text-sm py-5 text-center">Loading…</p></div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="panel p-4">
+        <div class="flex items-center gap-2 text-sm font-bold"><i class="fa-solid fa-bell text-amber-300"></i>Notifications</div>
+        <div id="notificationsPreview" class="mt-3 space-y-3"><p class="muted text-xs">Loading…</p></div>
+      </div>
+      <div class="panel p-4">
+        <div class="flex items-center gap-2 text-sm font-bold"><i class="fa-solid fa-shield-halved text-emerald-300"></i>Protection status</div>
+        <p class="text-emerald-300 text-xs font-bold mt-3"><span class="dot mr-2"></span>Fraud monitoring enabled</p>
+        <p class="muted text-xs leading-relaxed mt-2">Transactions may be allowed, held for review or blocked by fraud screening.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WALLET -->
+<section id="section-wallet" class="section">
+  <div class="flex justify-between items-end mb-4">
+    <div><div class="eyebrow">WALLET SERVICES</div><h2 class="text-xl font-extrabold mt-1">My wallet</h2></div>
+    <span class="pill text-amber-200">SIMULATED WALLET</span>
+  </div>
+
+  <div class="panel p-5 mb-4">
+    <p class="muted text-xs">Available balance</p>
+    <div id="walletBalance" class="text-3xl font-extrabold text-emerald-300 mt-2">ZMW 0.00</div>
+    <p class="muted text-xs mt-2">Live balance from your Guardian account.</p>
+  </div>
+
+  <div class="notice notice-warn mb-4">
+    <i class="fa-solid fa-circle-info mr-2"></i>
+    <strong>Important:</strong> These wallet actions operate inside THE GUARDIAN simulation. They do not send or receive real Airtel Money. Real payments require official Airtel API credentials and integration.
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+    <button id="btn-send" onclick="showWalletTab('send')" class="primary"><i class="fa-solid fa-paper-plane mr-2"></i>Send</button>
+    <button id="btn-topup" onclick="showWalletTab('topup')" class="secondary"><i class="fa-solid fa-plus mr-2"></i>Top up</button>
+    <button id="btn-withdraw" onclick="showWalletTab('withdraw')" class="secondary"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Withdraw</button>
+    <button id="btn-airtime" onclick="showWalletTab('airtime')" class="secondary"><i class="fa-solid fa-mobile-screen mr-2"></i>Airtime</button>
+  </div>
+
+  <div id="wallet-send" class="panel p-5 wallet-tab">
+    <h3 class="font-bold mb-1">Send to a Guardian wallet</h3>
+    <p class="muted text-xs mb-4">Transfers are screened before balances are changed.</p>
+    <form id="transferForm" class="space-y-4">
+      <label class="block text-xs muted">Recipient phone number
+        <input id="recipientPhone" class="field mt-2" type="tel" placeholder="0977123456" minlength="9" maxlength="20" required>
+      </label>
+      <label class="block text-xs muted">Amount (ZMW)
+        <input id="transferAmount" class="field mt-2" type="number" placeholder="50.00" min="0.01" max="500000" step="0.01" required>
+      </label>
+      <button id="transferButton" class="primary w-full" type="submit"><i class="fa-solid fa-shield-halved mr-2"></i>Review and send</button>
+    </form>
+    <div id="transferResult" class="hidden mt-3"></div>
+  </div>
+
+  <div id="wallet-topup" class="panel p-5 wallet-tab hidden">
+    <h3 class="font-bold mb-1">Top up demo wallet</h3>
+    <p class="muted text-xs mb-4">Credits simulated funds to your test wallet.</p>
+    <form id="topupForm" class="space-y-4">
+      <label class="block text-xs muted">Amount (ZMW)
+        <input id="topupAmount" class="field mt-2" type="number" placeholder="100.00" min="10" max="10000" step="0.01" required>
+      </label>
+      <button id="topupButton" class="primary w-full" type="submit"><i class="fa-solid fa-circle-plus mr-2"></i>Top up wallet</button>
+    </form>
+    <div id="topupResult" class="hidden mt-3"></div>
+  </div>
+
+  <div id="wallet-withdraw" class="panel p-5 wallet-tab hidden">
+    <h3 class="font-bold mb-1">Withdraw funds</h3>
+    <p class="muted text-xs mb-4">Simulates a payout request from your Guardian wallet.</p>
+    <form id="withdrawForm" class="space-y-4">
+      <label class="block text-xs muted">Destination phone number
+        <input id="withdrawPhone" class="field mt-2" type="tel" placeholder="0977123456" minlength="9" maxlength="20" required>
+      </label>
+      <label class="block text-xs muted">Amount (ZMW)
+        <input id="withdrawAmount" class="field mt-2" type="number" min="0.01" max="500000" step="0.01" placeholder="50.00" required>
+      </label>
+      <button id="withdrawButton" class="primary w-full" type="submit"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Request withdrawal</button>
+    </form>
+    <div id="withdrawResult" class="hidden mt-3"></div>
+  </div>
+
+  <div id="wallet-airtime" class="panel p-5 wallet-tab hidden">
+    <h3 class="font-bold mb-1">Buy airtime</h3>
+    <p class="muted text-xs mb-4">Simulated airtime purchase using your Guardian wallet.</p>
+    <form id="airtimeForm" class="space-y-4">
+      <label class="block text-xs muted">Phone number
+        <input id="airtimePhone" class="field mt-2" type="tel" placeholder="0977123456" minlength="9" maxlength="20" required>
+      </label>
+      <label class="block text-xs muted">Network
+        <select id="airtimeNetwork" class="field mt-2">
+          <option value="AIRTEL">Airtel</option>
+          <option value="MTN">MTN</option>
+          <option value="ZAMTEL">Zamtel</option>
+        </select>
+      </label>
+      <label class="block text-xs muted">Amount (ZMW)
+        <input id="airtimeAmount" class="field mt-2" type="number" min="1" max="10000" step="0.01" placeholder="20.00" required>
+      </label>
+      <button id="airtimeButton" class="primary w-full" type="submit"><i class="fa-solid fa-mobile-screen mr-2"></i>Buy airtime</button>
+    </form>
+    <div id="airtimeResult" class="hidden mt-3"></div>
+  </div>
+</section>
+
+<!-- TRANSACTIONS -->
+<section id="section-transactions" class="section">
+  <div class="flex justify-between items-end gap-3 mb-4">
+    <div><div class="eyebrow">ACCOUNT ACTIVITY</div><h2 class="text-xl font-extrabold mt-1">Transactions</h2><p class="muted text-xs mt-1">Your recorded transaction history</p></div>
+    <button onclick="loadAll()" class="secondary"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+  </div>
+
+  <div class="panel p-4 md:p-5"><div id="allTransactions"><p class="muted text-sm py-5 text-center">Loading transactions…</p></div></div>
+
+  <div class="panel p-5 mt-4">
+    <div class="font-bold text-sm mb-1"><i class="fa-solid fa-flag text-amber-300 mr-2"></i>Report a suspicious transaction</div>
+    <p class="muted text-xs mb-4">Reports are sent to the administrator for investigation.</p>
+    <form id="reportForm" class="space-y-3">
+      <input id="reportTransactionId" class="field text-sm" type="text" placeholder="Transaction ID" required>
+      <select id="reportReason" class="field text-sm" required>
+        <option value="">Select a reason</option>
+        <option value="UNAUTHORIZED">I did not authorize this transaction</option>
+        <option value="UNKNOWN_RECIPIENT">Unknown recipient</option>
+        <option value="INCORRECT_AMOUNT">Incorrect amount</option>
+        <option value="SUSPICIOUS_ACTIVITY">Suspicious activity</option>
+        <option value="OTHER">Other</option>
+      </select>
+      <button id="reportButton" class="primary w-full" type="submit">Submit report</button>
+    </form>
+    <div id="reportResult" class="hidden mt-3"></div>
+  </div>
+</section>
+
+<!-- AI NYASHA -->
+<section id="section-ai" class="section">
+  <div class="panel p-4 md:p-5">
+    <div class="flex items-center gap-3 border-b border-slate-700/70 pb-4">
+      <div class="w-11 h-11 rounded-2xl bg-emerald-400/10 border border-emerald-300/20 flex items-center justify-center">
+        <i class="fa-solid fa-wand-magic-sparkles text-emerald-300 text-lg"></i>
+      </div>
+      <div><h2 class="font-extrabold">AI NYASHA</h2><p class="text-emerald-300 text-xs mt-1">Your general-purpose AI assistant</p></div>
+      <span class="pill ml-auto"><span class="dot"></span>Assistant</span>
+    </div>
+
+    <div id="chatBox" class="h-[390px] overflow-y-auto py-3" aria-live="polite"></div>
+
+    <form id="chatForm" class="flex gap-2 border-t border-slate-700/70 pt-4">
+      <input id="chatInput" class="field min-w-0" type="text" maxlength="1000" placeholder="Ask AI NYASHA anything…" required>
+      <button id="chatButton" class="primary px-4" type="submit" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+    <p class="muted text-[10px] mt-3">Never share your password, wallet PIN or one-time verification code with an AI assistant.</p>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="section-settings" class="section">
+  <div class="eyebrow">ACCOUNT & PREFERENCES</div>
+  <h2 class="text-xl font-extrabold mt-1 mb-4">Account settings</h2>
+
+  <div class="panel p-5 mb-4">
+    <h3 class="font-bold text-sm mb-4"><i class="fa-solid fa-user text-emerald-300 mr-2"></i>Update profile</h3>
+    <form id="profileForm" class="space-y-3">
+      <label class="block text-xs muted">Full name
+        <input id="profileFullName" class="field mt-2" type="text" maxlength="120">
+      </label>
+      <label class="block text-xs muted">Email address
+        <input id="profileEmail" class="field mt-2" type="email" maxlength="254">
+      </label>
+      <button id="profileButton" class="primary w-full" type="submit">Save profile changes</button>
+    </form>
+    <div id="profileResult" class="hidden mt-3"></div>
+    <div id="profileDetails" class="space-y-3 text-sm mt-5"></div>
+  </div>
+
+  <div class="panel p-5 mb-4">
+    <h3 class="font-bold text-sm mb-4"><i class="fa-solid fa-sliders text-emerald-300 mr-2"></i>Preferences</h3>
+    <label class="flex items-center justify-between gap-3 text-sm">
+      <span>Animated background</span>
+      <select id="wallpaperSelect" class="field !w-auto !py-2 text-xs">
+        <option value="matrix">Matrix rain</option>
+        <option value="binary">Binary stream</option>
+        <option value="particles">Particles</option>
+        <option value="none">Off</option>
+      </select>
+    </label>
+    <div class="flex justify-between text-sm mt-4"><span class="muted">Currency</span><span>ZMW</span></div>
+    <div class="flex justify-between text-sm mt-3"><span class="muted">AI assistant</span><span class="text-emerald-300">AI NYASHA</span></div>
+    <div class="flex justify-between text-sm mt-3"><span class="muted">Security monitoring</span><span class="text-emerald-300">Enabled</span></div>
+  </div>
+
+  <button onclick="deleteAccount()" class="w-full rounded-xl border border-rose-400/30 bg-rose-400/5 text-rose-300 py-3 text-sm mb-3">
+    <i class="fa-solid fa-trash-can mr-2"></i>Request account deletion
+  </button>
+  <a href="/user/logout" class="block text-center text-rose-300 py-3 text-sm"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Sign out</a>
+</section>
+
+<section id="section-savings" class="section">
+  <div class="panel p-5 mb-5"><h2 class="font-bold text-lg mb-4">Savings Goals</h2>
+    <form id="goalForm" class="grid md:grid-cols-3 gap-3 mb-5"><input id="goalName" class="field" placeholder="Goal name" required><input id="goalTarget" class="field" type="number" min="1" step="0.01" placeholder="Target amount (ZMW)" required><input id="goalDeadline" class="field" type="date"><button class="primary">Create Goal</button></form>
+    <div id="goalsList" class="space-y-3">Loading savings goals...</div>
+  </div>
+</section>
+<section id="section-qrpay" class="section">
+  <div class="panel p-5 mb-5"><h2 class="font-bold text-lg mb-3">QR Code Payments</h2><p class="muted text-sm mb-4">Let another Guardian customer scan your payment code, or enter their QR payment code to pay them.</p>
+    <div class="grid md:grid-cols-2 gap-5"><div><h3 class="font-semibold mb-2">My payment QR code</h3><div id="myQr" class="bg-white rounded-xl p-4 inline-block min-h-28 min-w-28"></div><p id="qrOwner" class="muted text-xs mt-2"></p></div>
+    <form id="qrPayForm" class="space-y-3"><input id="recipientQr" class="field" placeholder="Paste scanned Guardian QR code" required><input id="qrAmount" class="field" type="number" min="0.01" step="0.01" placeholder="Amount (ZMW)" required><input id="qrNote" class="field" placeholder="Payment note (optional)"><button class="primary">Confirm QR Payment</button></form></div>
+  </div>
+</section>
+<section id="section-vcard" class="section"><div class="panel p-5 mb-5"><h2 class="font-bold text-lg mb-4">Virtual Guardian Card</h2><div class="rounded-2xl p-6 max-w-md" style="background:linear-gradient(120deg,#064e3b,#047857);"><div class="flex justify-between"><b>THE GUARDIAN</b><i class="fa-solid fa-wifi"></i></div><div class="text-2xl tracking-widest my-8">•••• •••• •••• <span id="cardLastFour">••••</span></div><div class="flex justify-between text-xs"><span id="cardHolder">CARDHOLDER</span><span>VIRTUAL</span></div></div><p id="cardStatus" class="muted text-sm my-4">Loading card...</p><div class="flex gap-3"><button id="freezeCard" class="primary">Freeze Card</button><button id="unfreezeCard" class="secondary">Unfreeze Card</button></div><p class="notice notice-warn mt-4">This is a simulated Guardian wallet card. It is not a bank-issued payment card and cannot be used on external card networks.</p></div></section>
+<section id="section-analytics" class="section"><div class="panel p-5 mb-5"><div class="flex justify-between gap-3 items-center mb-4"><h2 class="font-bold text-lg">Spending Analytics</h2><select id="analyticsPeriod" class="field max-w-40"><option value="week">Last 7 days</option><option value="month" selected>Last 30 days</option><option value="year">Last 365 days</option></select></div><div id="analyticsSummary" class="grid md:grid-cols-3 gap-3 mb-5"></div><div id="analyticsBreakdown" class="space-y-3"></div></div></section>
+<section id="section-security" class="section"><div class="panel p-5 mb-5"><h2 class="font-bold text-lg mb-4">Security Centre</h2><div class="notice notice-success mb-4">Review account security notifications and suspicious activity alerts here.</div><div id="securityAlerts" class="space-y-3">Loading security alerts...</div></div></section>
+<footer class="muted text-[10px] text-center mt-8 pb-4">THE GUARDIAN · Secure digital wallet monitoring</footer>
+</main>
+</div>
+
+<nav class="mobile-nav" aria-label="Main navigation">
+  <button class="active" data-section="home"><i class="fa-solid fa-grid-2 text-lg"></i><span>Home</span></button>
+  <button data-section="wallet"><i class="fa-solid fa-wallet text-lg"></i><span>Wallet</span></button>
+  <button data-section="transactions"><i class="fa-solid fa-clock-rotate-left text-lg"></i><span>History</span></button>
+  <button data-section="savings"><i class="fa-solid fa-piggy-bank text-lg"></i><span>Savings</span></button>
+  <button data-section="ai"><i class="fa-solid fa-wand-magic-sparkles text-lg"></i><span>NYASHA</span></button>
+  <button data-section="settings"><i class="fa-solid fa-user-gear text-lg"></i><span>Account</span></button>
+</nav>
+
+<script>
+"use strict";
+
+const API = {
+  profile:"/api/v1/user/profile",
+  stats:"/api/v1/user/stats",
+  transactions:"/api/v1/user/transactions",
+  notifications:"/api/v1/user/notifications",
+  transfer:"/api/v1/user/airtel-transfer",
+  topup:"/api/v1/user/topup",
+  withdraw:"/api/v1/user/withdraw",
+  airtime:"/api/v1/user/buy-airtime",
+  chat:"/api/v1/user/ai-chat",
+  report:"/api/v1/user/report"
+};
+
+const money = value => "ZMW " + Number(value || 0).toLocaleString("en-ZM", {
+  minimumFractionDigits:2, maximumFractionDigits:2
+});
+
+const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+}[c]));
+
+let loadInProgress = false;
+let aiInitialized = false;
+let currentProfile = null;
+
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    credentials:"same-origin",
+    ...options,
+    headers:{...(options.headers || {})}
+  });
+
+  const type = response.headers.get("content-type") || "";
+  let data = {};
+
+  if (type.includes("application/json")) {
+    data = await response.json();
+  } else {
+    const body = await response.text();
+    data = body ? {detail:body} : {};
+  }
+
+  if (response.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Your session has expired.");
+  }
+
+  if (!response.ok) {
+    throw new Error(data.detail || data.message || "The request could not be completed.");
+  }
+
+  return data;
+}
+
+function showResult(id, message, type="warn") {
+  const el = document.getElementById(id);
+  el.className = "notice " + (
+    type==="success" ? "notice-success" :
+    type==="error" ? "notice-error" : "notice-warn"
+  );
+  el.textContent = message;
+  el.classList.remove("hidden");
+}
+
+function formatDate(value) {
+  if (!value) return "Date unavailable";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "Date unavailable" : d.toLocaleString();
+}
+
+function statusClass(decision) {
+  const d = String(decision || "").toUpperCase();
+  return d==="ALLOW" ? "status-allow" :
+         d==="REVIEW" ? "status-review" :
+         d==="BLOCK" ? "status-block" : "status-other";
+}
+
+function txMarkup(tx) {
+  const decision = String(tx.decision || "UNKNOWN").toUpperCase();
+  const sender = tx.sender || tx.sender_msisdn || "";
+  const receiver = tx.receiver || tx.receiver_msisdn || "";
+  const direction = sender && receiver ? `From ${sender} → ${receiver}` : "";
+
+  return `
+    <div class="transaction-row">
+      <div class="min-w-0">
+        <div class="font-bold text-sm">${escapeHTML(money(tx.amount))}</div>
+        <div class="muted text-[10px] mt-1 break-all">${escapeHTML(tx.transaction_id || "Reference unavailable")}</div>
+        <div class="muted text-[10px] mt-1">${escapeHTML(formatDate(tx.created_at || tx.time || tx.processed_at))}</div>
+        ${direction ? `<div class="muted text-[10px] mt-1">${escapeHTML(direction)}</div>` : ""}
+        ${tx.transaction_type ? `<div class="muted text-[10px] mt-1">${escapeHTML(tx.transaction_type)}</div>` : ""}
+      </div>
+      <div class="text-right shrink-0">
+        <span class="status ${statusClass(decision)}">${escapeHTML(decision)}</span>
+        <button class="block text-[10px] text-amber-300 mt-2 ml-auto"
+          data-report-id="${escapeHTML(tx.transaction_id || "")}">Report issue</button>
+      </div>
+    </div>`;
+}
+
+function renderProfile(profile) {
+  currentProfile = profile;
+  document.getElementById("profileFullName").value = profile.full_name || "";
+  document.getElementById("profileEmail").value = profile.email || "";
+
+  document.getElementById("profileDetails").innerHTML = `
+    <div class="flex justify-between gap-4"><span class="muted">Username</span><span>${escapeHTML(profile.username || "Not set")}</span></div>
+    <div class="flex justify-between gap-4"><span class="muted">Phone</span><span>${escapeHTML(profile.phone || "Not set")}</span></div>
+    <div class="flex justify-between gap-4"><span class="muted">Last login</span><span>${escapeHTML(profile.last_login || "Unavailable")}</span></div>
+    <div class="flex justify-between gap-4"><span class="muted">Member since</span><span>${escapeHTML(profile.created_at || "Unavailable")}</span></div>`;
+}
+
+async function loadAll() {
+  if (loadInProgress) return;
+  loadInProgress = true;
+
+  const status = document.getElementById("connectionStatus");
+
+  try {
+    // Load independently so one failed endpoint does not hide all dashboard data.
+    const results = await Promise.allSettled([
+      apiRequest(API.profile),
+      apiRequest(API.stats),
+      apiRequest(API.transactions),
+      apiRequest(API.notifications)
+    ]);
+
+    const [profileResult, statsResult, txResult, notesResult] = results;
+
+    if (profileResult.status === "fulfilled") {
+      const profile = profileResult.value;
+      document.getElementById("userFullName").textContent =
+        profile.full_name || profile.username || "Customer";
+      renderProfile(profile);
+    }
+
+    if (statsResult.status === "fulfilled") {
+      const stats = statsResult.value;
+      const profile = profileResult.status === "fulfilled" ? profileResult.value : {};
+      const balance = Number(stats.balance ?? profile.balance ?? 0);
+
+      document.getElementById("balanceDisplay").textContent = money(balance);
+      document.getElementById("walletBalance").textContent = money(balance);
+
+      document.getElementById("statsContainer").innerHTML = `
+        <div class="metric"><p class="muted text-[10px]">Transactions</p><p class="text-xl font-bold mt-2">${Number(stats.total_transactions || 0)}</p></div>
+        <div class="metric"><p class="muted text-[10px]">Allowed</p><p class="text-xl font-bold text-emerald-300 mt-2">${Number(stats.allowed || 0)}</p></div>
+        <div class="metric"><p class="muted text-[10px]">Held / blocked</p><p class="text-xl font-bold text-amber-300 mt-2">${Number(stats.review || 0) + Number(stats.blocked || 0)}</p></div>`;
+    }
+
+    if (txResult.status === "fulfilled") {
+      const result = txResult.value;
+      const txs = Array.isArray(result) ? result : (result.transactions || []);
+      const html = txs.length
+        ? txs.map(txMarkup).join("")
+        : `<p class="muted text-sm py-5 text-center">No transactions recorded yet.</p>`;
+
+      document.getElementById("allTransactions").innerHTML = html;
+      document.getElementById("recentTransactions").innerHTML = txs.length
+        ? txs.slice(0,4).map(txMarkup).join("")
+        : `<p class="muted text-sm py-5 text-center">No transactions recorded yet.</p>`;
+    }
+
+    if (notesResult.status === "fulfilled") {
+      const result = notesResult.value;
+      const notes = Array.isArray(result) ? result : (result.notifications || []);
+
+      document.getElementById("notificationsPreview").innerHTML = notes.length
+        ? notes.slice(0,4).map(n => `
+          <div class="border-b border-slate-700/60 pb-2">
+            <p class="text-xs font-semibold">${escapeHTML(n.action || n.title || "Account update")}</p>
+            <p class="muted text-[10px] mt-1">${escapeHTML(n.details || "")}</p>
+            <p class="muted text-[10px] mt-1">${escapeHTML(n.time || formatDate(n.created_at))}</p>
+          </div>`).join("")
+        : `<p class="muted text-xs">You're all caught up.</p>`;
+    }
+
+    const failures = results.filter(r => r.status === "rejected").length;
+    if (failures === 0) {
+      status.textContent = "Service connected";
+      status.className = "text-emerald-300 text-[10px] mt-2";
+    } else {
+      status.textContent = `${4-failures}/4 services responding`;
+      status.className = "text-amber-300 text-[10px] mt-2";
+      console.error("Some dashboard services failed:", results);
+    }
+  } catch (error) {
+    status.textContent = "Connection unavailable";
+    status.className = "text-rose-300 text-[10px] mt-2";
+    console.error("Dashboard load failed:", error);
+  } finally {
+    loadInProgress = false;
+  }
+}
+
+function navigate(name) {
+  document.querySelectorAll(".section").forEach(section => {
+    section.classList.toggle("active", section.id === "section-" + name);
+  });
+
+  document.querySelectorAll("[data-section]").forEach(button => {
+    button.classList.toggle("active", button.dataset.section === name);
+  });
+
+  if (name === "ai") initializeAI();
+  if (name === "settings" && !currentProfile) loadAll();
+}
+
+document.querySelectorAll("[data-section]").forEach(button => {
+  button.addEventListener("click", () => navigate(button.dataset.section));
+});
+
+function showWalletTab(tab) {
+  document.querySelectorAll(".wallet-tab").forEach(el => {
+    el.classList.toggle("hidden", el.id !== "wallet-" + tab);
+  });
+
+  ["send","topup","withdraw","airtime"].forEach(name => {
+    const button = document.getElementById("btn-" + name);
+    button.className = name === tab ? "primary" : "secondary";
+  });
+}
+
+function setBusy(button, busy, text) {
+  button.disabled = busy;
+  if (busy) button.textContent = text;
+}
+
+function responseBalance(data) {
+  const value = data.balance ?? data.new_balance;
+  return value === undefined ? "" : ` New balance: ${money(value)}.`;
+}
+
+/* SEND MONEY */
+document.getElementById("transferForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("transferButton");
+  const phone = document.getElementById("recipientPhone").value.trim();
+  const amount = Number(document.getElementById("transferAmount").value);
+
+  if (!phone || !Number.isFinite(amount) || amount <= 0 || amount > 500000) {
+    return showResult("transferResult","Enter a valid phone number and amount.","error");
+  }
+
+  if (!confirm(`Confirm simulated Guardian wallet transfer of ${money(amount)} to ${phone}? This is not a real Airtel Money payment.`)) return;
+
+  setBusy(button,true,"Screening transaction…");
+
+  try {
+    const data = await apiRequest(API.transfer,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({recipient_phone:phone,amount})
+    });
+
+    const decision = String(data.decision || "UNKNOWN").toUpperCase();
+
+    if (data.success !== true || decision !== "ALLOW") {
+      showResult("transferResult",`Transfer not completed. Decision: ${decision}. ${data.message || data.recommendation || "Please contact support."}`,"warn");
+    } else {
+      showResult("transferResult",`Transfer completed in the internal Guardian wallet. Reference: ${data.transaction_id || "Unavailable"}.${responseBalance(data)} No real Airtel Money transfer was made.`,"success");
+      document.getElementById("transferForm").reset();
+    }
+
+    await loadAll();
+  } catch (error) {
+    showResult("transferResult",error.message || "Transfer failed.","error");
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-shield-halved mr-2"></i>Review and send';
+  }
+});
+
+/* TOP UP */
+document.getElementById("topupForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("topupButton");
+  const amount = Number(document.getElementById("topupAmount").value);
+
+  if (!Number.isFinite(amount) || amount < 10 || amount > 10000) {
+    return showResult("topupResult","Enter an amount between ZMW 10 and ZMW 10,000.","error");
+  }
+
+  if (!confirm(`Add ${money(amount)} to your simulated Guardian wallet? No Airtel account will be charged.`)) return;
+
+  setBusy(button,true,"Processing top-up…");
+
+  try {
+    const data = await apiRequest(API.topup,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({amount})
+    });
+
+    if (data.success !== true) {
+      showResult("topupResult",`Top-up not completed. ${data.message || data.recommendation || "It was held by fraud screening."}`,"warn");
+    } else {
+      showResult("topupResult",`Wallet credited successfully.${responseBalance(data)} This was simulated; no real Airtel payment was made.`,"success");
+      document.getElementById("topupForm").reset();
+    }
+
+    await loadAll();
+  } catch (error) {
+    showResult("topupResult",error.message || "Top-up failed.","error");
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-circle-plus mr-2"></i>Top up wallet';
+  }
+});
+
+/* WITHDRAW */
+document.getElementById("withdrawForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("withdrawButton");
+  const phone = document.getElementById("withdrawPhone").value.trim();
+  const amount = Number(document.getElementById("withdrawAmount").value);
+
+  if (!phone || !Number.isFinite(amount) || amount <= 0 || amount > 500000) {
+    return showResult("withdrawResult","Enter a valid destination phone number and amount.","error");
+  }
+
+  if (!confirm(`Confirm simulated withdrawal of ${money(amount)} to ${phone}? No real mobile-money payout will occur.`)) return;
+
+  setBusy(button,true,"Processing withdrawal…");
+
+  try {
+    const data = await apiRequest(API.withdraw,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({recipient_phone:phone,amount})
+    });
+
+    if (data.success !== true) {
+      showResult("withdrawResult",data.message || data.recommendation || "Withdrawal was not completed.","warn");
+    } else {
+      showResult("withdrawResult",`Withdrawal simulation completed. Reference: ${data.transaction_id || "Unavailable"}.${responseBalance(data)} No real payout was made.`,"success");
+      document.getElementById("withdrawForm").reset();
+    }
+
+    await loadAll();
+  } catch (error) {
+    showResult("withdrawResult",error.message || "Withdrawal failed.","error");
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-money-bill-transfer mr-2"></i>Request withdrawal';
+  }
+});
+
+/* AIRTIME */
+document.getElementById("airtimeForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("airtimeButton");
+  const phone = document.getElementById("airtimePhone").value.trim();
+  const amount = Number(document.getElementById("airtimeAmount").value);
+  const network = document.getElementById("airtimeNetwork").value;
+
+  if (!phone || !Number.isFinite(amount) || amount < 1 || amount > 10000) {
+    return showResult("airtimeResult","Enter a valid phone number and airtime amount.","error");
+  }
+
+  if (!confirm(`Buy simulated ${network} airtime worth ${money(amount)} for ${phone}?`)) return;
+
+  setBusy(button,true,"Processing airtime…");
+
+  try {
+    const data = await apiRequest(API.airtime,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone,amount,network})
+    });
+
+    if (data.success !== true) {
+      showResult("airtimeResult",data.message || data.recommendation || "Airtime purchase was not completed.","warn");
+    } else {
+      showResult("airtimeResult",`Airtime purchase simulation completed. Reference: ${data.transaction_id || "Unavailable"}.${responseBalance(data)} No real airtime was delivered.`,"success");
+      document.getElementById("airtimeForm").reset();
+    }
+
+    await loadAll();
+  } catch (error) {
+    showResult("airtimeResult",error.message || "Airtime purchase failed.","error");
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-mobile-screen mr-2"></i>Buy airtime';
+  }
+});
+
+/* REPORT A TRANSACTION */
+function prepareReport(id) {
+  document.getElementById("reportTransactionId").value = id;
+  navigate("transactions");
+  document.getElementById("reportReason").focus();
+}
+
+["allTransactions","recentTransactions"].forEach(id => {
+  document.getElementById(id).addEventListener("click", event => {
+    const button = event.target.closest("[data-report-id]");
+    if (button && button.dataset.reportId) prepareReport(button.dataset.reportId);
+  });
+});
+
+document.getElementById("reportForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("reportButton");
+  const transactionId = document.getElementById("reportTransactionId").value.trim();
+  const reason = document.getElementById("reportReason").value;
+
+  if (!transactionId || !reason) {
+    return showResult("reportResult","Enter a transaction ID and select a reason.","error");
+  }
+
+  setBusy(button,true,"Submitting report…");
+
+  try {
+    const body = new URLSearchParams({transaction_id:transactionId,reason});
+    const data = await apiRequest(API.report,{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body
+    });
+
+    showResult("reportResult",data.message || "Your report was submitted to the administrator.","success");
+    document.getElementById("reportForm").reset();
+  } catch (error) {
+    showResult("reportResult",error.message || "Could not submit report.","error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Submit report";
+  }
+});
+
+/* AI NYASHA */
+function addChatMessage(message,type) {
+  const box = document.getElementById("chatBox");
+  const div = document.createElement("div");
+  div.className = "chat-bubble " + (type === "user" ? "chat-user" : "chat-ai");
+  div.textContent = message;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function initializeAI() {
+  if (aiInitialized) return;
+
+  addChatMessage(
+    "Hi there, l’M PRETTY AI NYASHA, HOW CAN I ASSIST YOU TODAY.",
+    "ai"
+  );
+
+  aiInitialized = true;
+}
+
+document.getElementById("chatForm").addEventListener("submit",async event => {
+  event.preventDefault();
+
+  const input = document.getElementById("chatInput");
+  const button = document.getElementById("chatButton");
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  addChatMessage(message,"user");
+  input.value = "";
+  button.disabled = true;
+
+  const waiting = document.createElement("div");
+  waiting.className = "chat-bubble chat-ai";
+  waiting.textContent = "AI NYASHA is thinking…";
+  waiting.id = "nyashaThinking";
+  document.getElementById("chatBox").appendChild(waiting);
+
+  try {
+    const data = await apiRequest(API.chat,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message})
+    });
+
+    // The backend returns "reply", not "answer".
+    const reply = data.reply || data.answer || data.message ||
+      "I couldn't generate a response. Please try again.";
+
+    waiting.remove();
+    addChatMessage(reply,"ai");
+  } catch (error) {
+    waiting.remove();
+    addChatMessage("I'm having trouble reaching the Guardian service. " + (error.message || "Please try again."),"ai");
+  } finally {
+    button.disabled = false;
+    input.focus();
+  }
+});
+
+/* PROFILE UPDATE */
+document.getElementById("profileForm").addEventListener("submit",async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("profileButton");
+  const full_name = document.getElementById("profileFullName").value.trim();
+  const email = document.getElementById("profileEmail").value.trim();
+
+  if (!full_name) {
+    return showResult("profileResult","Please enter your full name.","error");
+  }
+
+  setBusy(button,true,"Saving profile…");
+
+  try {
+    const data = await apiRequest(API.profile,{
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({full_name,email})
+    });
+
+    showResult("profileResult",data.message || "Your profile was updated.","success");
+    await loadAll();
+  } catch (error) {
+    showResult("profileResult",error.message || "Could not update profile.","error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save profile changes";
+  }
+});
+
+function deleteAccount() {
+  alert("Account deletion is not enabled. Please contact the THE GUARDIAN administrator to request account closure.");
+}
+
+/* ANIMATED BACKGROUND */
+const canvas = document.getElementById("wallpaper");
+const ctx = canvas.getContext("2d");
+
+let animationId = null;
+let wallpaper = "matrix";
+let drops = [];
+let particles = [];
+
+try {
+  wallpaper = localStorage.getItem("userWallpaper") || "matrix";
+} catch (_) {}
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  initWallpaper();
+}
+
+function initWallpaper() {
+  drops = Array(Math.ceil(canvas.width/16)).fill(1);
+  particles = Array.from({length:32},() => ({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    vx:(Math.random()-.5)*.7,
+    vy:(Math.random()-.5)*.7,
+    r:Math.random()*1.5+1
+  }));
+}
+
+function setWallpaper(value) {
+  wallpaper = value;
+
+  try {
+    localStorage.setItem("userWallpaper",value);
+  } catch (_) {}
+
+  if (animationId) cancelAnimationFrame(animationId);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  initWallpaper();
+
+  if (value === "none") return;
+
+  const loop = () => {
+    ctx.fillStyle = "rgba(11,18,32,.18)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    if (value === "matrix" || value === "binary") {
+      ctx.font = "12px monospace";
+      ctx.fillStyle = value === "matrix" ? "#35e6a1" : "#43c8ef";
+
+      if (value === "matrix") {
+        for (let i=0;i<drops.length;i++) {
+          ctx.fillText("01アイウエオ"[Math.floor(Math.random()*7)],i*16,drops[i]*15);
+          if (drops[i]*15>canvas.height && Math.random()>.975) drops[i]=0;
+          drops[i]++;
+        }
+      } else {
+        for (let i=0;i<25;i++) {
+          ctx.fillText(Math.random()>.5?"1":"0",Math.random()*canvas.width,Math.random()*canvas.height);
+        }
+      }
+    } else if (value === "particles") {
+      ctx.fillStyle = "#35e6a1";
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x<0 || p.x>canvas.width) p.vx *= -1;
+        if (p.y<0 || p.y>canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+      });
+    }
+
+    animationId = requestAnimationFrame(loop);
+  };
+
+  loop();
+}
+
+window.addEventListener("resize",resizeCanvas);
+document.getElementById("wallpaperSelect").addEventListener("change",event => setWallpaper(event.target.value));
+
+resizeCanvas();
+document.getElementById("wallpaperSelect").value = wallpaper;
+setWallpaper(wallpaper);
+
+loadAll();
+setInterval(loadAll,30000);
+
+
+
+// Additional customer features
+const featureApi = (path, options={}) => apiRequest(path, options);
+async function loadGoals(){
+ const box=document.getElementById('goalsList');
+ try{const rows=await featureApi('/api/v1/user/savings-goals');
+ if(!rows.length){box.textContent='You have not created any savings goals yet.';return;}
+ box.innerHTML=rows.map(g=>`<div class="metric"><div class="flex justify-between gap-3"><b>${escapeHTML(g.name)}</b><span class="pill">${escapeHTML(g.status)}</span></div><div class="muted text-xs mt-2">${money(g.saved_amount)} saved of ${money(g.target_amount)} · ${g.progress}%</div><div class="h-2 rounded-full bg-slate-700 mt-3 overflow-hidden"><div class="h-full bg-emerald-400" style="width:${Math.min(100,Number(g.progress)||0)}%"></div></div><div class="flex gap-2 mt-3"><input id="contrib-${g.id}" class="field" type="number" min="0.01" step="0.01" placeholder="Contribution ZMW"><button class="primary" onclick="contributeGoal(${g.id})">Add Savings</button></div></div>`).join('');
+ }catch(e){box.textContent=e.message;}}
+async function contributeGoal(id){const amount=Number(document.getElementById('contrib-'+id).value);if(!(amount>0))return alert('Enter a valid amount.');try{const r=await featureApi(`/api/v1/user/savings-goals/${id}/contribute`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount})});alert(r.message);loadGoals();loadAll();}catch(e){alert(e.message)}}
+document.getElementById('goalForm').addEventListener('submit',async e=>{e.preventDefault();const payload={name:document.getElementById('goalName').value,target_amount:Number(document.getElementById('goalTarget').value),deadline:document.getElementById('goalDeadline').value||null};try{await featureApi('/api/v1/user/savings-goals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});e.target.reset();loadGoals();}catch(err){alert(err.message)}});
+async function loadMyQR(){try{const d=await featureApi('/api/v1/user/qr-code');document.getElementById('myQr').innerHTML='';const holder=document.createElement('div');holder.id='guardianQrCanvas';document.getElementById('myQr').appendChild(holder);if(!window.QRCode){await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';sc.onload=resolve;sc.onerror=reject;document.head.appendChild(sc);});}new QRCode(holder,{text:d.qr_token,width:170,height:170});document.getElementById('qrOwner').textContent=`${d.display_name} · ${d.phone}`;}catch(e){document.getElementById('myQr').textContent=e.message}}
+document.getElementById('qrPayForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await featureApi('/api/v1/user/qr-pay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({qr_token:document.getElementById('recipientQr').value.trim(),amount:Number(document.getElementById('qrAmount').value),note:document.getElementById('qrNote').value})});alert(r.message);e.target.reset();loadAll();}catch(err){alert(err.message)}});
+async function loadVirtualCard(){try{const c=await featureApi('/api/v1/user/virtual-card');document.getElementById('cardLastFour').textContent=c.last_four;document.getElementById('cardHolder').textContent=c.cardholder;document.getElementById('cardStatus').textContent='Card status: '+c.status;document.getElementById('freezeCard').disabled=c.status==='FROZEN';document.getElementById('unfreezeCard').disabled=c.status==='ACTIVE';}catch(e){document.getElementById('cardStatus').textContent=e.message}}
+async function setCardStatus(action){try{await featureApi('/api/v1/user/virtual-card/'+action,{method:'POST'});loadVirtualCard();}catch(e){alert(e.message)}}
+document.getElementById('freezeCard').addEventListener('click',()=>setCardStatus('freeze'));document.getElementById('unfreezeCard').addEventListener('click',()=>setCardStatus('unfreeze'));
+async function loadAnalytics(){try{const period=document.getElementById('analyticsPeriod').value;const a=await featureApi('/api/v1/user/spending-analytics?period='+period);document.getElementById('analyticsSummary').innerHTML=`<div class="metric"><div class="muted text-xs">Total spending</div><b class="text-xl">${money(a.total_spent)}</b></div><div class="metric"><div class="muted text-xs">Transactions</div><b class="text-xl">${a.transaction_count}</b></div><div class="metric"><div class="muted text-xs">Period</div><b class="text-xl">${escapeHTML(a.period)}</b></div>`;document.getElementById('analyticsBreakdown').innerHTML=a.by_type.length?a.by_type.map(x=>`<div class="flex justify-between border-b border-slate-700 py-3 text-sm"><span>${escapeHTML(x.category)}</span><b>${money(x.amount)}</b></div>`).join(''):'No spending recorded for this period.';}catch(e){document.getElementById('analyticsBreakdown').textContent=e.message}}
+document.getElementById('analyticsPeriod').addEventListener('change',loadAnalytics);
+async function loadSecurityAlerts(){try{const rows=await featureApi('/api/v1/user/security-alerts');const box=document.getElementById('securityAlerts');box.innerHTML=rows.length?rows.map(a=>`<div class="metric"><div class="flex justify-between gap-2"><b>${escapeHTML(a.title)}</b><span class="pill">${escapeHTML(a.severity)}</span></div><p class="muted text-sm mt-2">${escapeHTML(a.message)}</p><div class="muted text-xs mt-2">${escapeHTML(a.created_at)}</div>${a.is_read?'':'<button class="secondary mt-3" onclick="markSecurityRead('+a.id+')">Mark as read</button>'}</div>`).join(''):'No security alerts. Your account has no recorded alerts.';}catch(e){document.getElementById('securityAlerts').textContent=e.message}}
+async function markSecurityRead(id){try{await featureApi(`/api/v1/user/security-alerts/${id}/read`,{method:'POST'});loadSecurityAlerts()}catch(e){alert(e.message)}}
+const oldNavigate=window.navigate;
+window.navigate=function(name){if(typeof oldNavigate==='function')oldNavigate(name);if(name==='savings')loadGoals();if(name==='qrpay')loadMyQR();if(name==='vcard')loadVirtualCard();if(name==='analytics')loadAnalytics();if(name==='security')loadSecurityAlerts();};
+
+</script>
+</body>
+</html>
