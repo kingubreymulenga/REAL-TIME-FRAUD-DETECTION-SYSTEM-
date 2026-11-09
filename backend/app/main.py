@@ -77,7 +77,11 @@ APP_NAME = "THE-GUARDIAN"
 AI_NAME = "AI NYASHA"
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "mulenga")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+if not ADMIN_PASSWORD:
+    if os.getenv("RENDER"):
+        raise RuntimeError("Set ADMIN_PASSWORD in Render environment variables.")
+    ADMIN_PASSWORD = "change-this-local-admin-password"
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -627,72 +631,64 @@ def registration_page(request: Request):
 @app.post("/user/register")
 def register_user(
     request: Request,
-    username: str = Form(...),
     full_name: str = Form(...),
     phone: str = Form(...),
     password: str = Form(...),
     email: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
-    username = username.strip()
-    phone = phone.strip()
-    full_name = full_name.strip()
+    """Create a customer account; the phone number is also the login username."""
+    full_name = " ".join(full_name.strip().split())
+    phone = phone.strip().replace(" ", "").replace("-", "")
+    email = (email or "").strip().lower() or None
 
+    def registration_error(message: str, code: int = 400):
+        return templates.TemplateResponse(
+            "user_register.html",
+            {"request": request, "error": message, "full_name": full_name, "phone": phone, "email": email or ""},
+            status_code=code,
+        )
+
+    if len(full_name) < 2 or len(full_name) > 150:
+        return registration_error("Please enter your full name.")
+    if not phone or len(phone) < 7 or len(phone) > 20 or not phone.replace("+", "").isdigit():
+        return registration_error("Enter a valid phone number, including country code if needed.")
     if len(password) < 8:
-        raise HTTPException(
-            status_code=400,
-            detail="Password must contain at least 8 characters."
-        )
+        return registration_error("Your password must contain at least 8 characters.")
+    if len(password) > 72:
+        return registration_error("Password is too long. Use 72 characters or fewer.")
 
-    existing = db.query(User).filter(
-        or_(
-            User.username == username,
-            User.phone == phone,
-            User.email == email if email else False,
-        )
+    duplicate = db.query(User).filter(
+        or_(User.username == phone, User.phone == phone, User.email == email if email else False)
     ).first()
-
-    if existing:
-        raise HTTPException(
-            status_code=409,
-            detail="Username, phone or email already registered."
-        )
+    if duplicate:
+        return registration_error("That phone number or email is already registered. Please log in instead.", 409)
 
     user = User(
-        username=username,
+        username=phone,
         full_name=full_name,
         phone=phone,
-        email=email or None,
+        email=email,
         password=hash_password(password),
         balance=0.0,
         balance_ngwee=0,
         is_active=True,
         created_at=utc_now(),
     )
-
-    db.add(user)
-
-    log_activity(
-        db,
-        "USER_REGISTERED",
-        phone,
-        "New customer account created."
-    )
-
-    db.commit()
-    db.refresh(user)
+    try:
+        db.add(user)
+        db.flush()
+        log_activity(db, "USER_REGISTERED", phone, "New customer account created.")
+        db.commit()
+        db.refresh(user)
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Registration failed")
+        return registration_error("We could not create your account just now. Please try again.", 500)
 
     request.session.clear()
-    request.session["normal_user"] = {
-        "id": user.id,
-        "username": user.username,
-    }
-
-    return RedirectResponse(
-        "/user/dashboard",
-        status_code=303
-    )
-
+    request.session["normal_user"] = {"id": user.id, "username": user.username}
+    return RedirectResponse("/user/dashboard", status_code=303)
 
 # ============================================================
 # DASHBOARD PAGES
