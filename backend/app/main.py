@@ -389,6 +389,15 @@ def broadcast_dashboard_event(event: dict):
         pass
 
 
+
+def _safe_json_list(value):
+    try:
+        parsed = json.loads(value or "[]")
+        return parsed if isinstance(parsed, list) else []
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+
+
 def serialize_transaction(transaction: Transaction):
     return {
         "id": transaction.id,
@@ -405,7 +414,7 @@ def serialize_transaction(transaction: Transaction):
         "risk_level": transaction.risk_level,
         "decision": transaction.decision,
         "recommendation": transaction.recommendation,
-        "factors": json.loads(transaction.factors or "[]"),
+        "factors": _safe_json_list(transaction.factors),
         "location": transaction.location,
         "location_lat": transaction.location_lat,
         "location_lon": transaction.location_lon,
@@ -463,12 +472,11 @@ active_admin_connections = set()
 
 @app.websocket("/ws/dashboard")
 async def dashboard_websocket(websocket: WebSocket):
-    await websocket.accept()
-
     if not websocket.session.get("user"):
         await websocket.close(code=1008)
         return
 
+    await websocket.accept()
     active_admin_connections.add(websocket)
 
     try:
@@ -829,6 +837,11 @@ def dashboard_stats(
         "active_users": db.query(User).filter(
             User.is_active.is_(True)
         ).count(),
+        "wallet_ledger_entries": db.query(WalletLedger).count(),
+        "wallet_balance_total": round(
+            db.query(func.coalesce(func.sum(User.balance_ngwee), 0)).scalar() / 100.0,
+            2,
+        ),
     }
 
 
@@ -1225,6 +1238,9 @@ def get_authenticated_user(
     current: dict,
     db: Session,
 ):
+    if not isinstance(current, dict) or not current.get("id"):
+        raise HTTPException(status_code=401, detail="Please sign in again.")
+
     user = db.query(User).filter(
         User.id == current["id"]
     ).first()
@@ -1519,10 +1535,10 @@ def wallet_topup(
 
         tx_request, result = run_wallet_fraud_check(
             db=db,
-            sender_phone="SIMULATED-AIRTEL-GATEWAY",
+            sender_phone="AIRTEL-GATEWAY",
             receiver_phone=get_user_phone(user),
             amount_ngwee=amount_ngwee,
-            channel="airtel_simulation",
+            channel="airtel_gateway",
             transaction_type="TOPUP",
         )
 
@@ -1558,14 +1574,14 @@ def wallet_topup(
             tx_request.transaction_id,
             "CREDIT",
             amount_ngwee,
-            "Simulated Airtel wallet top-up",
+            "Wallet top-up",
         )
 
         log_activity(
             db,
             "WALLET_TOPUP",
             get_user_phone(user),
-            f"Simulated top-up: K{ngwee_to_kwacha(amount_ngwee):.2f}",
+            f"Wallet top-up: K{ngwee_to_kwacha(amount_ngwee):.2f}",
         )
 
         db.commit()
@@ -1579,11 +1595,8 @@ def wallet_topup(
 
         return {
             "success": True,
-            "simulated": True,
-            "message": (
-                "Wallet credited in simulation. "
-                "No real Airtel payment was processed."
-            ),
+            "message": "Wallet balance updated successfully.",
+            "wallet_environment": "DEMO",
             "transaction_id": tx_request.transaction_id,
             "amount": ngwee_to_kwacha(amount_ngwee),
             "balance": ngwee_to_kwacha(user.balance_ngwee),
@@ -1647,7 +1660,7 @@ def wallet_transfer(
             sender_phone=sender_phone,
             receiver_phone=recipient_phone,
             amount_ngwee=amount_ngwee,
-            channel="guardian_wallet_simulation",
+            channel="guardian_wallet",
             transaction_type="TRANSFER",
         )
 
@@ -1732,7 +1745,7 @@ def wallet_transfer(
             transaction_type=(
                 "GUARDIAN_TRANSFER"
                 if recipient
-                else "SIMULATED_EXTERNAL_TRANSFER"
+                else "EXTERNAL_TRANSFER_REQUEST"
             ),
         )
 
@@ -1759,7 +1772,6 @@ def wallet_transfer(
 
         return {
             "success": True,
-            "simulated": True,
             "transaction_id": tx_request.transaction_id,
             "amount": ngwee_to_kwacha(amount_ngwee),
             "recipient": recipient_phone,
@@ -1769,11 +1781,9 @@ def wallet_transfer(
             "message": (
                 "Guardian wallet transfer completed."
                 if recipient
-                else (
-                    "Simulated external payout recorded. "
-                    "No external Airtel transfer occurred."
-                )
+                else "Transfer request recorded. External Airtel payout is not connected."
             ),
+            "wallet_environment": "DEMO",
         }
 
     except HTTPException:
@@ -1818,7 +1828,7 @@ def wallet_withdraw(
             get_user_phone(user),
             phone,
             amount_ngwee,
-            "simulated_withdrawal",
+            "wallet_withdrawal",
             "WITHDRAWAL",
         )
 
@@ -1864,7 +1874,7 @@ def wallet_withdraw(
             tx_request.transaction_id,
             "DEBIT",
             amount_ngwee,
-            "Simulated wallet withdrawal",
+            "Wallet withdrawal",
         )
 
         record = create_transaction_record(
@@ -1880,7 +1890,7 @@ def wallet_withdraw(
             db,
             "WALLET_WITHDRAWAL",
             get_user_phone(user),
-            f"Simulated withdrawal to {phone}.",
+            f"Withdrawal request recorded for {phone}.",
         )
 
         db.commit()
@@ -1894,11 +1904,8 @@ def wallet_withdraw(
 
         return {
             "success": True,
-            "simulated": True,
-            "message": (
-                "Simulated withdrawal recorded. "
-                "No external payout was processed."
-            ),
+            "message": "Withdrawal request recorded. External payout is not connected.",
+            "wallet_environment": "DEMO",
             "transaction_id": tx_request.transaction_id,
             "amount": ngwee_to_kwacha(amount_ngwee),
             "balance": ngwee_to_kwacha(user.balance_ngwee),
@@ -1954,7 +1961,7 @@ def buy_airtime(
             get_user_phone(user),
             phone,
             amount_ngwee,
-            "airtime_simulation",
+            "airtime_order",
             "AIRTIME",
         )
 
@@ -2000,7 +2007,7 @@ def buy_airtime(
             tx_request.transaction_id,
             "DEBIT",
             amount_ngwee,
-            f"Simulated {network} airtime purchase for {phone}",
+            f"{network} airtime purchase for {phone}",
         )
 
         record = create_transaction_record(
@@ -2016,7 +2023,7 @@ def buy_airtime(
             db,
             "AIRTIME_PURCHASE",
             get_user_phone(user),
-            f"Simulated {network} airtime purchase for {phone}.",
+            f"{network} airtime purchase request for {phone}.",
         )
 
         db.commit()
@@ -2030,11 +2037,8 @@ def buy_airtime(
 
         return {
             "success": True,
-            "simulated": True,
-            "message": (
-                "Simulated airtime purchase completed. "
-                "No airtime was delivered by a mobile network."
-            ),
+            "message": "Airtime purchase request recorded. Network delivery is not connected.",
+            "wallet_environment": "DEMO",
             "network": network,
             "phone": phone,
             "amount": ngwee_to_kwacha(amount_ngwee),
@@ -2200,76 +2204,70 @@ class AIChatRequest(BaseModel):
 
 
 def ask_ai_nyasha(message: str) -> str:
-    """
-    Uses the OpenAI Responses API when an API key is configured.
-
-    Without an API key, returns a transparent configuration message.
-    """
-
-    api_key = os.getenv("OPENAI_API_KEY")
-
+    """Generate an answer with Google Gemini using GEMINI_API_KEY."""
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
+        logger.error("GEMINI_API_KEY is not configured.")
         return (
-            "I'm AI NYASHA. My AI service has not been connected yet. "
-            "Please configure OPENAI_API_KEY on the server to enable "
-            "general AI-powered answers."
+            "AI NYASHA is not connected yet. The administrator must add "
+            "GEMINI_API_KEY to the server environment and restart THE-GUARDIAN."
         )
 
     import urllib.request
     import urllib.error
 
-    model = os.getenv(
-        "OPENAI_MODEL",
-        "gpt-6"
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{model}:generateContent"
     )
-
     payload = {
-        "model": model,
-        "instructions": (
-            "You are AI NYASHA, the helpful assistant inside THE-GUARDIAN. "
-            "Answer general questions clearly and accurately. "
-            "Do not claim to have performed payments or account actions. "
-            "Never request passwords, PINs, or OTP codes."
-        ),
-        "input": message,
+        "systemInstruction": {
+            "parts": [{
+                "text": (
+                    "You are AI NYASHA, the helpful assistant inside THE-GUARDIAN. "
+                    "Be warm, clear, accurate and concise. Help users understand "
+                    "their wallet and fraud-security features, but never claim to "
+                    "have executed a payment, transfer, withdrawal or account change. "
+                    "Never ask for passwords, wallet PINs or OTP codes. Do not invent "
+                    "account balances or transaction details. For account-specific "
+                    "questions, direct the user to the relevant dashboard section."
+                )
+            }]
+        },
+        "contents": [{"role": "user", "parts": [{"text": message}]}],
+        "generationConfig": {"temperature": 0.6, "maxOutputTokens": 900},
     }
-
     request_data = json.dumps(payload).encode("utf-8")
-
     req = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
+        endpoint,
         data=request_data,
         headers={
-            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
         },
         method="POST",
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(
-                response.read().decode("utf-8")
-            )
-
-        output_text = []
-
-        for item in data.get("output", []):
-            for content in item.get("content", []):
-                if content.get("type") == "output_text":
-                    output_text.append(content.get("text", ""))
-
-        answer = "\n".join(output_text).strip()
-
-        return answer or "I couldn't generate an answer. Please try again."
-
+        with urllib.request.urlopen(req, timeout=35) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        candidates = data.get("candidates") or []
+        parts = (candidates[0].get("content") or {}).get("parts") or [] if candidates else []
+        answer = "\n".join(
+            part.get("text", "") for part in parts if isinstance(part, dict)
+        ).strip()
+        if answer:
+            return answer
+        logger.warning("Gemini returned no text: %s", data.get("promptFeedback", {}))
+        return "I couldn't generate an answer just now. Please try again."
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")[:1500]
+        logger.error("Gemini API returned HTTP %s: %s", exc.code, error_body)
+        return "AI NYASHA is temporarily unavailable. Please try again shortly."
     except Exception:
-        logger.exception("AI NYASHA request failed.")
-
-        return (
-            "AI NYASHA is temporarily unavailable. "
-            "Please try again shortly."
-        )
+        logger.exception("AI NYASHA Gemini request failed.")
+        return "AI NYASHA is temporarily unavailable. Please try again shortly."
 
 
 @app.post("/api/v1/user/ai-chat")
@@ -2371,11 +2369,14 @@ def system_status(
         "status": "ONLINE",
         "database": "CONNECTED",
         "fraud_detector": "ACTIVE",
-        "wallet_mode": "SIMULATION",
+        "wallet_mode": "GUARDIAN_DEMO_LEDGER",
+        "external_settlement": "NOT_CONNECTED",
         "airtel_live_api": "NOT_CONFIGURED",
+        "ai_provider": "GOOGLE_GEMINI",
+        "ai_model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
         "ai_nyasha": (
-            "CONNECTED"
-            if os.getenv("OPENAI_API_KEY")
+            "CONFIGURED"
+            if os.getenv("GEMINI_API_KEY")
             else "NOT_CONFIGURED"
         ),
         "users": db.query(User).count(),
@@ -2447,18 +2448,86 @@ def create_savings_goal(payload:SavingsGoalCreate, current=Depends(require_user)
     return {"success":True,"goal_id":goal.id,"message":"Savings goal created."}
 
 @app.post("/api/v1/user/savings-goals/{goal_id}/contribute")
-def contribute_savings(goal_id:int,payload:SavingsContribution,current=Depends(require_user),db:Session=Depends(get_db)):
-    user=get_authenticated_user(current,db); amount=amount_to_ngwee(payload.amount)
-    goal=db.query(SavingsGoal).filter(SavingsGoal.id==goal_id,SavingsGoal.user_id==user.id,SavingsGoal.status=="ACTIVE").first()
-    if not goal: raise HTTPException(404,"Savings goal not found.")
-    if user.balance_ngwee < amount: raise HTTPException(400,"Insufficient wallet balance.")
-    user.balance_ngwee-=amount; user.balance=ngwee_to_kwacha(user.balance_ngwee); goal.saved_ngwee+=amount
-    txid=f"SAVE-{uuid.uuid4().hex[:14].upper()}"
-    add_wallet_ledger(db,user,txid,"DEBIT",amount,f"Contribution to savings goal: {goal.name}")
-    if goal.saved_ngwee>=goal.target_ngwee: goal.status="COMPLETED"
-    log_activity(db,"SAVINGS_CONTRIBUTION",get_user_phone(user),f"Contributed {ngwee_to_kwacha(amount):.2f} to {goal.name}")
-    db.commit()
-    return {"success":True,"message":"Savings contribution recorded.","balance":ngwee_to_kwacha(user.balance_ngwee)}
+def contribute_savings(
+    goal_id: int,
+    payload: SavingsContribution,
+    current=Depends(require_user),
+    db: Session=Depends(get_db),
+):
+    user = get_authenticated_user(current, db)
+    try:
+        amount = amount_to_ngwee(payload.amount)
+        goal = db.query(SavingsGoal).filter(
+            SavingsGoal.id == goal_id,
+            SavingsGoal.user_id == user.id,
+            SavingsGoal.status == "ACTIVE",
+        ).first()
+        if not goal:
+            raise HTTPException(status_code=404, detail="Savings goal not found.")
+
+        phone = get_user_phone(user)
+        tx_request, result = run_wallet_fraud_check(
+            db, phone, f"SAVINGS-GOAL-{goal.id}", amount,
+            "guardian_savings", "SAVINGS_CONTRIBUTION",
+        )
+        decision = enum_value(result.decision)
+        if decision != "ALLOW":
+            commit_fraud_attempt(db, tx_request, result, "SAVINGS_CONTRIBUTION")
+            return wallet_decision_response(result)
+
+        debit = db.execute(
+            update(User)
+            .where(User.id == user.id, User.balance_ngwee >= amount)
+            .values(
+                balance_ngwee=User.balance_ngwee - amount,
+                balance=(User.balance_ngwee - amount) / 100.0,
+            )
+            .execution_options(synchronize_session=False)
+        )
+        if debit.rowcount != 1:
+            raise HTTPException(status_code=400, detail="Insufficient wallet balance.")
+
+        goal.saved_ngwee += amount
+        if goal.saved_ngwee >= goal.target_ngwee:
+            goal.status = "COMPLETED"
+        db.flush()
+        db.refresh(user)
+
+        add_wallet_ledger(
+            db, user, tx_request.transaction_id, "DEBIT", amount,
+            f"Contribution to savings goal: {goal.name}",
+        )
+        record = create_transaction_record(
+            db, tx_request, result, transaction_type="SAVINGS_CONTRIBUTION",
+        )
+        log_activity(
+            db, "SAVINGS_CONTRIBUTION", phone,
+            f"Contributed K{ngwee_to_kwacha(amount):.2f} to {goal.name}.",
+        )
+        db.commit()
+        db.refresh(user)
+        db.refresh(record)
+        broadcast_dashboard_event({
+            "type": "WALLET_TRANSACTION",
+            "transaction": serialize_transaction(record),
+        })
+        return {
+            "success": True,
+            "transaction_id": tx_request.transaction_id,
+            "message": "Savings contribution recorded successfully.",
+            "balance": ngwee_to_kwacha(user.balance_ngwee),
+            "saved_amount": ngwee_to_kwacha(goal.saved_ngwee),
+            "goal_status": goal.status,
+            "decision": decision,
+        }
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        logger.exception("Savings contribution failed.")
+        raise HTTPException(status_code=500, detail="Savings contribution failed.")
+
 
 @app.get("/api/v1/user/qr-code")
 def get_payment_qr(current=Depends(require_user),db:Session=Depends(get_db)):
@@ -2466,25 +2535,98 @@ def get_payment_qr(current=Depends(require_user),db:Session=Depends(get_db)):
     return {"qr_token":f"GUARDIAN:{user.id}:{user.username}","display_name":user.full_name or user.username,"phone":get_user_phone(user)}
 
 @app.post("/api/v1/user/qr-pay")
-def pay_by_qr(payload:QRPaymentRequest,current=Depends(require_user),db:Session=Depends(get_db)):
-    sender=get_authenticated_user(current,db)
+def pay_by_qr(
+    payload: QRPaymentRequest,
+    current=Depends(require_user),
+    db: Session=Depends(get_db),
+):
+    sender = get_authenticated_user(current, db)
     try:
-        prefix,uid,_=payload.qr_token.split(":",2); recipient_id=int(uid)
-    except Exception: raise HTTPException(400,"Invalid Guardian payment QR code.")
-    if prefix!="GUARDIAN" or recipient_id==sender.id: raise HTTPException(400,"Invalid recipient.")
-    recipient=db.query(User).filter(User.id==recipient_id,User.is_active.is_(True)).first()
-    if not recipient: raise HTTPException(404,"Recipient account not found.")
-    amount=amount_to_ngwee(payload.amount)
-    if sender.balance_ngwee<amount: raise HTTPException(400,"Insufficient wallet balance.")
-    sender.balance_ngwee-=amount; sender.balance=ngwee_to_kwacha(sender.balance_ngwee)
-    recipient.balance_ngwee+=amount; recipient.balance=ngwee_to_kwacha(recipient.balance_ngwee)
-    txid=f"QR-{uuid.uuid4().hex[:14].upper()}"
-    add_wallet_ledger(db,sender,txid,"DEBIT",amount,payload.note or f"QR payment to {get_user_phone(recipient)}")
-    add_wallet_ledger(db,recipient,txid,"CREDIT",amount,payload.note or f"QR payment from {get_user_phone(sender)}")
-    log_activity(db,"QR_PAYMENT_SENT",get_user_phone(sender),f"QR payment {txid} to {get_user_phone(recipient)}")
-    log_activity(db,"QR_PAYMENT_RECEIVED",get_user_phone(recipient),f"QR payment {txid} received")
-    db.commit()
-    return {"success":True,"transaction_id":txid,"message":"QR payment completed.","balance":ngwee_to_kwacha(sender.balance_ngwee)}
+        prefix, uid, _username = payload.qr_token.split(":", 2)
+        recipient_id = int(uid)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail="Invalid Guardian payment QR code.")
+
+    if prefix != "GUARDIAN" or recipient_id == sender.id:
+        raise HTTPException(status_code=400, detail="Invalid recipient.")
+
+    recipient = db.query(User).filter(
+        User.id == recipient_id,
+        User.is_active.is_(True),
+    ).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient account not found.")
+
+    try:
+        amount = amount_to_ngwee(payload.amount)
+        sender_phone = get_user_phone(sender)
+        recipient_phone = get_user_phone(recipient)
+        tx_request, result = run_wallet_fraud_check(
+            db, sender_phone, recipient_phone, amount,
+            "guardian_qr", "QR_PAYMENT",
+        )
+        decision = enum_value(result.decision)
+        if decision != "ALLOW":
+            commit_fraud_attempt(db, tx_request, result, "QR_PAYMENT")
+            return wallet_decision_response(result)
+
+        debit = db.execute(
+            update(User)
+            .where(User.id == sender.id, User.balance_ngwee >= amount)
+            .values(
+                balance_ngwee=User.balance_ngwee - amount,
+                balance=(User.balance_ngwee - amount) / 100.0,
+            )
+            .execution_options(synchronize_session=False)
+        )
+        if debit.rowcount != 1:
+            raise HTTPException(status_code=400, detail="Insufficient wallet balance.")
+
+        credit = db.execute(
+            update(User)
+            .where(User.id == recipient.id, User.is_active.is_(True))
+            .values(
+                balance_ngwee=User.balance_ngwee + amount,
+                balance=(User.balance_ngwee + amount) / 100.0,
+            )
+            .execution_options(synchronize_session=False)
+        )
+        if credit.rowcount != 1:
+            raise HTTPException(status_code=409, detail="Recipient wallet could not be credited.")
+
+        db.flush()
+        db.refresh(sender)
+        db.refresh(recipient)
+        note = payload.note or "Guardian QR payment"
+        add_wallet_ledger(db, sender, tx_request.transaction_id, "DEBIT", amount,
+                          f"{note} to {recipient_phone}")
+        add_wallet_ledger(db, recipient, tx_request.transaction_id, "CREDIT", amount,
+                          f"{note} from {sender_phone}")
+        record = create_transaction_record(db, tx_request, result, transaction_type="QR_PAYMENT")
+        log_activity(db, "QR_PAYMENT_SENT", sender_phone,
+                     f"QR payment {tx_request.transaction_id} to {recipient_phone}.")
+        log_activity(db, "QR_PAYMENT_RECEIVED", recipient_phone,
+                     f"QR payment {tx_request.transaction_id} received from {sender_phone}.")
+        db.commit()
+        db.refresh(sender)
+        db.refresh(record)
+        event = {"type": "WALLET_TRANSACTION", "transaction": serialize_transaction(record)}
+        broadcast_dashboard_event(event)
+        return {
+            "success": True,
+            "transaction_id": tx_request.transaction_id,
+            "message": "QR wallet payment completed successfully.",
+            "balance": ngwee_to_kwacha(sender.balance_ngwee),
+            "decision": decision,
+        }
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        logger.exception("QR payment failed.")
+        raise HTTPException(status_code=500, detail="QR payment failed.")
+
 
 @app.get("/api/v1/user/virtual-card")
 def get_virtual_card(current=Depends(require_user),db:Session=Depends(get_db)):
