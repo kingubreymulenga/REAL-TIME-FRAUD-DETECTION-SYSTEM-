@@ -3,75 +3,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE GUARDIAN // Create Account</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
-        .card { background: #111827; border: 1px solid #1e293b; }
-        .input-field { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; }
-        .input-field:focus { outline: none; border-color: #22d3ee; }
-        .btn-primary { background: #0891b2; transition: 0.2s; }
-        .btn-primary:hover { background: #0e7490; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#030907">
+  <title>Create Account | THE-GUARDIAN</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --green: #36f59a;
+      --muted: #91a99b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #030907;
+      color: #eafff2;
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 26px 16px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #matrix {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: .31;
+      pointer-events: none;
+    }
+
+    .shade {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(0,50,28,.22), transparent 58%),
+        linear-gradient(180deg, rgba(1,8,5,.24), rgba(1,8,5,.82));
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 480px);
+    }
+
+    .brand {
+      text-align: center;
+      margin: 0 auto 20px;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 13px;
+      border: 1px solid rgba(54,245,154,.55);
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      font-size: 25px;
+      background: rgba(14,42,27,.72);
+      box-shadow: 0 0 30px rgba(54,245,154,.12);
+    }
+
+    .brand h1 {
+      font-size: clamp(23px, 6vw, 30px);
+      letter-spacing: .18em;
+      margin: 0;
+      color: #eafff2;
+      font-weight: 800;
+    }
+
+    .brand .sub {
+      margin: 8px 0 0;
+      color: #8ebaa0;
+      font: 11px/1.5 monospace;
+      letter-spacing: .2em;
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(8,20,14,.96), rgba(5,14,10,.94));
+      border: 1px solid rgba(54,245,154,.2);
+      border-radius: 23px;
+      padding: clamp(22px, 6vw, 34px);
+      box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 45px rgba(22,215,115,.07);
+      backdrop-filter: blur(18px);
+    }
+
+    .card-head { margin-bottom: 23px; }
+
+    .eyebrow {
+      color: var(--green);
+      font: 10px monospace;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: 25px;
+      margin: 8px 0 6px;
+      letter-spacing: -.03em;
+    }
+
+    .intro {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .error {
+      border: 1px solid rgba(255,103,122,.35);
+      background: rgba(90,15,25,.3);
+      color: #ffb6c0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0 0 17px;
+    }
+
+    form { display: grid; gap: 15px; }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: #b5c9bc;
+      margin: 0 0 7px;
+      font-weight: 600;
+    }
+
+    .field input {
+      width: 100%;
+      height: 49px;
+      border-radius: 12px;
+      border: 1px solid rgba(139,181,153,.22);
+      background: rgba(0,0,0,.34);
+      color: #effff5;
+      padding: 0 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .field input::placeholder { color: #61796a; }
+
+    .field input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(54,245,154,.11);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #789384;
+      margin: 7px 1px 0;
+      line-height: 1.45;
+    }
+
+    .submit {
+      margin-top: 5px;
+      width: 100%;
+      height: 51px;
+      border: 1px solid rgba(54,245,154,.55);
+      border-radius: 12px;
+      background: linear-gradient(100deg,#0c7547,#0b5036);
+      color: #edfff5;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .12em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(10,175,93,.15);
+    }
+
+    .submit:hover { filter: brightness(1.15); }
+
+    .bottom {
+      text-align: center;
+      color: #8ca294;
+      font-size: 13px;
+      margin: 20px 0 0;
+    }
+
+    .bottom a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .signature {
+      text-align: center;
+      margin: 18px 0 0;
+      padding-top: 17px;
+      border-top: 1px solid rgba(54,245,154,.12);
+    }
+
+    .signature strong {
+      display: block;
+      color: #d8ffea;
+      font-size: 12px;
+      letter-spacing: .09em;
+    }
+
+    .signature span {
+      display: block;
+      color: #76a88b;
+      font: italic 12px Georgia, serif;
+      margin-top: 6px;
+    }
+
+    .foot {
+      text-align: center;
+      color: #526b5b;
+      font: 9px monospace;
+      letter-spacing: .13em;
+      margin-top: 18px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #matrix { display: none; }
+    }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="card w-full max-w-md rounded-2xl p-8">
-        <div class="text-center mb-8">
-            <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-                <i class="fas fa-user-plus text-2xl text-cyan-400"></i>
-            </div>
-            <h1 class="text-2xl font-bold text-cyan-400">Create Account</h1>
-            <p class="text-slate-400 text-sm mt-1">Join The Guardian Protection System</p>
-        </div>
 
-        {% if error %}
-        <div class="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm rounded-lg p-3 mb-5 text-center">
-            {{ error }}
-        </div>
-        {% endif %}
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+  <div class="shade" aria-hidden="true"></div>
 
-        {% if success %}
-        <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm rounded-lg p-3 mb-5 text-center">
-            {{ success }}
-        </div>
-        {% endif %}
+  <main class="wrap">
+    <header class="brand">
+      <div class="brand-mark">⌘</div>
+      <h1>THE-GUARDIAN</h1>
+      <p class="sub">SECURE WALLET · SMART PROTECTION</p>
+    </header>
 
-        <form method="POST" action="/user/register" class="space-y-4">
-            <div>
-                <label class="block text-sm text-slate-400 mb-1">Full Name</label>
-                <input type="text" name="full_name" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="John Banda">
-            </div>
-
-            <div>
-                <label class="block text-sm text-slate-400 mb-1">Phone Number (Username)</label>
-                <input type="text" name="username" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="0977123456">
-            </div>
-
-            <div>
-                <label class="block text-sm text-slate-400 mb-1">Email (Optional)</label>
-                <input type="email" name="email" class="input-field w-full px-4 py-3 rounded-lg" placeholder="john@example.com">
-            </div>
-
-            <div>
-                <label class="block text-sm text-slate-400 mb-1">Password</label>
-                <input type="password" name="password" required minlength="6" class="input-field w-full px-4 py-3 rounded-lg" placeholder="••••••••">
-            </div>
-
-            <button type="submit" class="btn-primary w-full py-3 rounded-lg font-medium text-white mt-2">
-                Create Account
-            </button>
-        </form>
-
-        <p class="text-center text-sm text-slate-500 mt-6">
-            Already have an account?
-            <a href="/login" class="text-cyan-400 hover:underline">Login here</a>
+    <section class="card">
+      <div class="card-head">
+        <div class="eyebrow">New member registration</div>
+        <h2>Create your account</h2>
+        <p class="intro">
+          Set up your secure profile to access your Guardian dashboard.
         </p>
+      </div>
 
-        <p class="text-center text-xs text-slate-600 mt-8">Secured by Obby Mulenga</p>
-    </div>
+      {% if error %}
+      <div class="error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/user/register" autocomplete="on">
+        <div class="field">
+          <label for="full_name">Full name</label>
+          <input
+            id="full_name"
+            name="full_name"
+            type="text"
+            autocomplete="name"
+            maxlength="150"
+            required
+            value="{{ full_name|default('') }}"
+            placeholder="Enter your full name">
+        </div>
+
+        <div class="field">
+          <label for="phone">Mobile phone number</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            maxlength="20"
+            required
+            value="{{ phone|default('') }}"
+            placeholder="e.g. 0977123456">
+          <p class="hint">
+            This number will also be your username when you log in.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="email">
+            Email address <span style="color:#718b7b">(optional)</span>
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="150"
+            value="{{ email|default('') }}"
+            placeholder="you@example.com">
+        </div>
+
+        <div class="field">
+          <label for="password">Create password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="72"
+            required
+            placeholder="At least 8 characters">
+          <p class="hint">
+            Use at least 8 characters. Never share your password.
+          </p>
+        </div>
+
+        <button class="submit" type="submit">
+          CREATE SECURE ACCOUNT&nbsp; →
+        </button>
+      </form>
+
+      <p class="bottom">
+        Already registered?
+        <a href="/login">Sign in to your account</a>
+      </p>
+
+      <div class="signature">
+        <strong>Engineer Aubrey MulengaObby</strong>
+        <span>“Impossible is nothing”</span>
+      </div>
+    </section>
+
+    <footer class="foot">
+      THE-GUARDIAN SECURITY PLATFORM · PROTECTED ACCESS
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("matrix");
+
+      if (
+        !canvas ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) return;
+
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx) return;
+
+      const glyphs = "01アイウエオカキクケコサシスセソタチツテト";
+      let width = 0;
+      let height = 0;
+      let drops = [];
+      const font = 15;
+      let raf = 0;
+      let last = 0;
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        width = window.innerWidth;
+        height = window.innerHeight;
+
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const columns = Math.ceil(width / font);
+        drops = Array.from(
+          { length: columns },
+          () => Math.random() * -(height / font)
+        );
+      }
+
+      function draw(now) {
+        raf = requestAnimationFrame(draw);
+        if (now - last < 45) return;
+        last = now;
+
+        ctx.fillStyle = "rgba(2,9,5,.10)";
+        ctx.fillRect(0, 0, width, height);
+        ctx.font = font + "px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+          const char = glyphs[Math.floor(Math.random() * glyphs.length)];
+          ctx.fillStyle = Math.random() > .975 ? "#d8ffe8" : "#23d879";
+          ctx.fillText(char, i * font, drops[i] * font);
+
+          if (drops[i] * font > height && Math.random() > .975) {
+            drops[i] = 0;
+          }
+
+          drops[i] += .48 + Math.random() * .4;
+        }
+      }
+
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      raf = requestAnimationFrame(draw);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          cancelAnimationFrame(raf);
+        } else {
+          last = 0;
+          raf = requestAnimationFrame(draw);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
