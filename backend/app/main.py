@@ -2196,78 +2196,13 @@ def user_notifications(
 
 
 # ============================================================
-# AI NYASHA
+# AI NYASHA (Google Gemini - Fixed & Stable)
 # ============================================================
+
+import httpx
 
 class AIChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4000)
-
-
-def ask_ai_nyasha(message: str) -> str:
-    """Generate an answer with Google Gemini using GEMINI_API_KEY."""
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        logger.error("GEMINI_API_KEY is not configured.")
-        return (
-            "AI NYASHA is not connected yet. The administrator must add "
-            "GEMINI_API_KEY to the server environment and restart THE-GUARDIAN."
-        )
-
-    import urllib.request
-    import urllib.error
-
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
-    endpoint = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{model}:generateContent"
-    )
-    payload = {
-        "systemInstruction": {
-            "parts": [{
-                "text": (
-                    "You are AI NYASHA, the helpful assistant inside THE-GUARDIAN. "
-                    "Be warm, clear, accurate and concise. Help users understand "
-                    "their wallet and fraud-security features, but never claim to "
-                    "have executed a payment, transfer, withdrawal or account change. "
-                    "Never ask for passwords, wallet PINs or OTP codes. Do not invent "
-                    "account balances or transaction details. For account-specific "
-                    "questions, direct the user to the relevant dashboard section."
-                )
-            }]
-        },
-        "contents": [{"role": "user", "parts": [{"text": message}]}],
-        "generationConfig": {"temperature": 0.6, "maxOutputTokens": 900},
-    }
-    request_data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        endpoint,
-        data=request_data,
-        headers={
-            "Content-Type": "application/json",
-            "x-goog-api-key": api_key,
-        },
-        method="POST",
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=35) as response:
-            data = json.loads(response.read().decode("utf-8"))
-        candidates = data.get("candidates") or []
-        parts = (candidates[0].get("content") or {}).get("parts") or [] if candidates else []
-        answer = "\n".join(
-            part.get("text", "") for part in parts if isinstance(part, dict)
-        ).strip()
-        if answer:
-            return answer
-        logger.warning("Gemini returned no text: %s", data.get("promptFeedback", {}))
-        return "I couldn't generate an answer just now. Please try again."
-    except urllib.error.HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace")[:1500]
-        logger.error("Gemini API returned HTTP %s: %s", exc.code, error_body)
-        return "AI NYASHA is temporarily unavailable. Please try again shortly."
-    except Exception:
-        logger.exception("AI NYASHA Gemini request failed.")
-        return "AI NYASHA is temporarily unavailable. Please try again shortly."
 
 
 @app.post("/api/v1/user/ai-chat")
@@ -2277,26 +2212,72 @@ async def ai_chat(
     db: Session = Depends(get_db),
 ):
     user = get_authenticated_user(current, db)
+    message = payload.message.strip()
 
-    answer = await asyncio.to_thread(
-        ask_ai_nyasha,
-        payload.message.strip()
-    )
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_api_key:
+        return {
+            "success": False,
+            "reply": "AI NYASHA is not configured. Please contact the administrator.",
+            "message": "AI NYASHA is not configured."
+        }
 
+    # Use a stable free model
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_api_key}"
+
+    headers = {"Content-Type": "application/json"}
+
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": (
+                    "You are AI NYASHA, a helpful and professional assistant inside THE GUARDIAN "
+                    "fraud detection system in Zambia. Answer clearly, politely and keep responses short. "
+                    "Help users with wallet, transactions, security and general questions. "
+                    "Never ask for passwords, PINs or OTP codes.\n\n"
+                    f"User: {message}"
+                )
+            }]
+        }],
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 700
+        }
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            response = await client.post(url, headers=headers, json=data)
+
+        if response.status_code == 200:
+            result = response.json()
+            answer = (
+                result.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "I could not generate a response right now.")
+            )
+        else:
+            answer = "AI NYASHA is temporarily busy. Please try again in a few seconds."
+
+    except Exception as e:
+        logger.error(f"AI NYASHA Gemini error: {str(e)}")
+        answer = "Sorry, AI NYASHA is temporarily unavailable. Please try again shortly."
+
+    # Log so it shows on Admin Dashboard
     log_activity(
         db,
         "AI_NYASHA_CHAT",
         get_user_phone(user),
-        "Customer used AI NYASHA."
+        f"User asked: {message[:80]}"
     )
-
     db.commit()
 
     return {
         "success": True,
-        "assistant": AI_NAME,
+        "assistant": "AI NYASHA",
         "reply": answer,
-        "message": answer,
+        "message": answer
     }
 
 
