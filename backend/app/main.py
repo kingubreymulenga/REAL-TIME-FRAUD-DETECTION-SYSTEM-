@@ -1,4 +1,5 @@
 
+
 # ============================================================
 # THE-GUARDIAN
 # Main FastAPI Application
@@ -2222,10 +2223,22 @@ async def ai_chat(
             "message": "AI NYASHA is not configured."
         }
 
-    # Use a stable free model
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_api_key}"
+    # Read the model from Render Environment Variables so it can be changed
+    # without editing code. Accept either "gemini-x" or "models/gemini-x".
+    model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    if model.startswith("models/"):
+        model = model[len("models/"):]
+    if not model:
+        model = "gemini-3.8-flash"
 
-    headers = {"Content-Type": "application/json"}
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{model}:generateContent"
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": gemini_api_key,
+    }
 
     data = {
         "contents": [{
@@ -2258,7 +2271,16 @@ async def ai_chat(
                 .get("text", "I could not generate a response right now.")
             )
         else:
-            answer = "AI NYASHA is temporarily busy. Please try again in a few seconds."
+            # Keep credentials private while recording Google's diagnostic response.
+            logger.error(
+                "Gemini API returned HTTP %s: %s",
+                response.status_code,
+                response.text[:1200],
+            )
+            answer = (
+                f"AI NYASHA could not reach the configured Gemini model "
+                f"({model}). Please check the GEMINI_MODEL setting and Render logs."
+            )
 
     except Exception as e:
         logger.error(f"AI NYASHA Gemini error: {str(e)}")
@@ -2354,7 +2376,7 @@ def system_status(
         "external_settlement": "NOT_CONNECTED",
         "airtel_live_api": "NOT_CONFIGURED",
         "ai_provider": "GOOGLE_GEMINI",
-        "ai_model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        "ai_model": os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
         "ai_nyasha": (
             "CONFIGURED"
             if os.getenv("GEMINI_API_KEY")
