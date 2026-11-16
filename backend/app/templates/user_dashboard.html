@@ -25,7 +25,7 @@
 }
 *{box-sizing:border-box}
 body{
-  margin:0;min-height:100vh;padding-bottom:85px;
+  margin:0;min-height:100vh;padding-bottom:132px;
   background:radial-gradient(ellipse at 15% -10%,rgba(16,185,129,.13),transparent 36%),var(--bg);
   color:#e5edf7;font-family:Inter,system-ui,sans-serif
 }
@@ -41,8 +41,9 @@ body{
 .nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:12px;color:#91a0b5;font-size:13px;font-weight:600;text-align:left}
 .nav-btn:hover,.nav-btn.active{color:#eafff6;background:rgba(16,185,129,.12)}
 .nav-btn.active{box-shadow:inset 3px 0 var(--green)}
-.mobile-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:flex;justify-content:space-around;gap:3px;padding:10px 5px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(10,18,31,.97);backdrop-filter:blur(18px)}
-.mobile-nav button{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:48px;color:#8392a8;font-size:10px;font-weight:600}
+.mobile-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,42px);align-items:center;gap:2px 4px;padding:7px 6px max(9px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(10,18,31,.98);backdrop-filter:blur(18px)}
+.mobile-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;width:100%;height:40px;color:#8392a8;font-size:9px;font-weight:600;white-space:nowrap}
+.mobile-nav button i{font-size:15px}
 .mobile-nav button.active{color:var(--green)}
 .field{width:100%;border:1px solid #34445b;border-radius:12px;background:#091321;color:#f2f7fc;padding:13px 14px;outline:none}
 .field:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(53,230,161,.1)}
@@ -201,13 +202,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div id="walletBalance" class="text-3xl font-extrabold text-emerald-300 mt-2">ZMW 0.00</div>
     <p class="muted text-xs mt-2">Live balance from your Guardian account.</p>
   </div>
-
-  <div class="notice notice-warn mb-4">
-    <i class="fa-solid fa-circle-info mr-2"></i>
-    <strong>Important:</strong> These wallet actions operate inside THE GUARDIAN simulation. They do not send or receive real Airtel Money. Real payments require official Airtel API credentials and integration.
-  </div>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
     <button id="btn-send" onclick="showWalletTab('send')" class="primary"><i class="fa-solid fa-paper-plane mr-2"></i>Send</button>
     <button id="btn-topup" onclick="showWalletTab('topup')" class="secondary"><i class="fa-solid fa-plus mr-2"></i>Top up</button>
     <button id="btn-withdraw" onclick="showWalletTab('withdraw')" class="secondary"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Withdraw</button>
@@ -390,12 +385,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </div>
 
 <nav class="mobile-nav" aria-label="Main navigation">
-  <button class="active" data-section="home"><i class="fa-solid fa-grid-2 text-lg"></i><span>Home</span></button>
-  <button data-section="wallet"><i class="fa-solid fa-wallet text-lg"></i><span>Wallet</span></button>
-  <button data-section="transactions"><i class="fa-solid fa-clock-rotate-left text-lg"></i><span>History</span></button>
-  <button data-section="savings"><i class="fa-solid fa-piggy-bank text-lg"></i><span>Savings</span></button>
-  <button data-section="ai"><i class="fa-solid fa-wand-magic-sparkles text-lg"></i><span>NYASHA</span></button>
-  <button data-section="settings"><i class="fa-solid fa-user-gear text-lg"></i><span>Account</span></button>
+  <button class="active" data-section="home"><i class="fa-solid fa-grid-2"></i><span>Home</span></button>
+  <button data-section="wallet"><i class="fa-solid fa-wallet"></i><span>Wallet</span></button>
+  <button data-section="transactions"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
+  <button data-section="savings"><i class="fa-solid fa-piggy-bank"></i><span>Savings</span></button>
+  <button data-section="qrpay"><i class="fa-solid fa-qrcode"></i><span>QR Pay</span></button>
+  <button data-section="vcard"><i class="fa-solid fa-credit-card"></i><span>Card</span></button>
+  <button data-section="analytics"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></button>
+  <button data-section="security"><i class="fa-solid fa-shield-halved"></i><span>Security</span></button>
+  <button data-section="ai"><i class="fa-solid fa-wand-magic-sparkles"></i><span>NYASHA</span></button>
+  <button data-section="settings"><i class="fa-solid fa-user-gear"></i><span>Account</span></button>
 </nav>
 
 <script>
